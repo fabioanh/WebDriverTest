@@ -25,9 +25,11 @@ public abstract class CommonPage {
 		checkCorrectPage();
 	}
 
-	public void checkCorrectPage() {
+	protected void checkCorrectPage() {
 		if (!driver.getTitle().trim().equals(title)) {
-			throw new IllegalStateException("This is not the right page");
+			throw new IllegalStateException("This is not the right page - "
+					+ driver.getCurrentUrl() + " - Title: "
+					+ driver.getTitle().trim() + " --- Should be: " + title);
 		}
 	}
 

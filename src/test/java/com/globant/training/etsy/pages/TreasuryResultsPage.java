@@ -11,7 +11,7 @@ import com.globant.training.common.EtsyXpaths;
 public class TreasuryResultsPage extends CommonPage {
 
 	public TreasuryResultsPage(WebDriver driver, String key) {
-		super(driver, key + " " + EtsyTitles.RESULTS_TITLE);
+		super(driver, key + " " + EtsyTitles.TREASURY_RESULTS_TITLE.getValue());
 	}
 
 	public WebElement getNumResults() {

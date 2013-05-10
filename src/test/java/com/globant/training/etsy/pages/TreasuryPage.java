@@ -18,6 +18,7 @@ public class TreasuryPage extends CommonPage {
 		WebElement treasurySearchButton = getSearchButtonTreasury();
 		getSearchFieldTreasury().sendKeys(key);
 		treasurySearchButton.click();
+		System.out.println("Search in treasury");
 		return new TreasuryResultsPage(driver, key);
 	}
 

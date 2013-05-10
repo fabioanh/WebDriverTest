@@ -12,11 +12,14 @@ import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.firefox.FirefoxProfile;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.globant.training.common.EtsyValues;
+import com.globant.training.etsy.pages.CartPage;
 import com.globant.training.etsy.pages.HomePage;
+import com.globant.training.etsy.pages.ResultsPage;
 import com.globant.training.etsy.pages.TreasuryResultsPage;
 
 public class EtsyTest {
@@ -31,6 +34,11 @@ public class EtsyTest {
 		driver.get(EtsyValues.ETSY_URL.getValue());
 	}
 
+	@AfterMethod(groups = { "suite1", "suite3" })
+	public void after() {
+		// driver.close();
+	}
+
 	/**
 	 * Test intended to search items around in the site
 	 */
@@ -38,11 +46,13 @@ public class EtsyTest {
 	public void browseItems() {
 
 		HomePage homePage = new HomePage(driver);
+
 		TreasuryResultsPage treasuryResultsPage = homePage.goToTreasury()
 				.treasurySearch("bag");
-
+		System.out.println("Assert expected results not 0");
 		assertNotEquals(treasuryResultsPage.getNumResults().getText().trim()
 				.substring(0, 1), "0", "Results expected for given key");
+		System.out.println("go to result");
 
 		treasuryResultsPage.goToResult(1);
 
@@ -55,35 +65,15 @@ public class EtsyTest {
 	public void addItemToCart() {
 		driver = new FirefoxDriver();
 
-		driver.get(EtsyValues.ETSY_CART_URL.getValue());
-		WebDriverWait wait = new WebDriverWait(driver, 10);
+		CartPage cartPage = new CartPage(driver);
 
-		try {
-			wait.until(ExpectedConditions.presenceOfElementLocated(By
-					.xpath("/HTML/BODY/DIV[@id=\"content\"]/DIV[@id=\"primary\"]/DIV[@id=\"checkout\"]/DIV[@id=\"newempty\"]/DIV")));
-		} catch (NoSuchElementException e) {
+		if (!cartPage.isEmptyCart()) {
 			fail("Cart should be empty");
 		}
 
-		// Find the button to do the search inside treasury objects
-		WebElement searchButton = wait
-				.until(ExpectedConditions.elementToBeClickable(By
-						.xpath("/HTML/BODY/DIV[@id=\"header\"]/DIV[@id=\"navigation-group\"]/FORM[@id=\"search-bar\"]/DIV/BUTTON[@id=\"search_submit\"]")));
+		ResultsPage resultsPage = cartPage.commonSearch("hat");
 
-		// Find the text input field to do the search
-		WebElement searchField = driver
-				.findElement(By
-						.xpath("/HTML/BODY/DIV[@id=\"header\"]/DIV[@id=\"navigation-group\"]/FORM[@id=\"search-bar\"]/DIV/INPUT[@id=\"search-query\"]"));
-		// Search key
-		searchField.sendKeys("hat");
-
-		searchButton.click();
-
-		WebElement itemToBuy = wait
-				.until(ExpectedConditions.elementToBeClickable(By
-						.xpath("/HTML/BODY/DIV[@id=\"content\"]/DIV/DIV/DIV/DIV[@id=\"primary\"]/UL/LI[1]/A")));
-
-		itemToBuy.click();
+		resultsPage.getResultItems().get(0).click();
 
 		WebElement addToCartButton = wait
 				.until(ExpectedConditions.elementToBeClickable(By

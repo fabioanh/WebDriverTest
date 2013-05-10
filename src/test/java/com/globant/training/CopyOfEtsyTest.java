@@ -31,7 +31,7 @@ public class CopyOfEtsyTest {
 	/**
 	 * Test intended to search items around in the site
 	 */
-	@Test(groups = "suite1")
+	@Test(groups = "suite1-1")
 	public void browseItems() {
 
 		WebElement treasuryLink = driver.findElement(By
