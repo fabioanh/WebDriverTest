@@ -1,0 +1,11 @@
+-------------------------------------------------------------------------------
+Test set: TestSuite
+-------------------------------------------------------------------------------
+Tests run: 2, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 38.636 sec <<< FAILURE!
+browseItems(com.globant.training.EtsyTest)  Time elapsed: 0.136 sec  <<< FAILURE!
+java.lang.IllegalStateException: This is not the right page
+	at com.globant.training.etsy.pages.CommonPage.checkCorrectPage(CommonPage.java:30)
+	at com.globant.training.etsy.pages.CommonPage.<init>(CommonPage.java:25)
+	at com.globant.training.etsy.pages.HomePage.<init>(HomePage.java:12)
+	at com.globant.training.EtsyTest.browseItems(EtsyTest.java:40)
+

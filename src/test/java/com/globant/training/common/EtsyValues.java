@@ -2,6 +2,8 @@ package com.globant.training.common;
 
 public enum EtsyValues {
 
+	ETSY_CART_URL("https://www.etsy.com/cart"),
+	ETSY_URL("http://www.etsy.com/"),
 	TREASURY("Treasury");
 
 	private String value;

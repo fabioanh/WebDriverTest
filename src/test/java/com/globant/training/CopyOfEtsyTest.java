@@ -1,34 +1,31 @@
 package com.globant.training;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNotEquals;
-import static org.testng.Assert.fail;
-
 import org.openqa.selenium.By;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.firefox.FirefoxDriver;
-import org.openqa.selenium.firefox.FirefoxProfile;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import com.globant.training.common.EtsyValues;
-import com.globant.training.etsy.pages.HomePage;
-import com.globant.training.etsy.pages.TreasuryResultsPage;
+import static org.testng.Assert.assertNotEquals;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.fail;
 
-public class EtsyTest {
+public class CopyOfEtsyTest {
+
+	private static final String ETSY_URL = "http://www.etsy.com/";
+	private static final String CART_URL = "https://www.etsy.com/cart";
+	private static final String TREASURY_LINK_TEXT = "Treasury";
 
 	private WebDriver driver;
 
 	@BeforeMethod(groups = { "suite1", "suite3" })
 	public void init() {
-		FirefoxProfile profile = new FirefoxProfile();
-		profile.setPreference("intl.accept_languages", "en");
 		driver = new FirefoxDriver();
-		driver.get(EtsyValues.ETSY_URL.getValue());
+		driver.get(ETSY_URL);
 	}
 
 	/**
@@ -37,14 +34,37 @@ public class EtsyTest {
 	@Test(groups = "suite1")
 	public void browseItems() {
 
-		HomePage homePage = new HomePage(driver);
-		TreasuryResultsPage treasuryResultsPage = homePage.goToTreasury()
-				.treasurySearch("bag");
+		WebElement treasuryLink = driver.findElement(By
+				.linkText(TREASURY_LINK_TEXT));
+		treasuryLink.click();
 
-		assertNotEquals(treasuryResultsPage.getNumResults().getText().trim()
-				.substring(0, 1), "0", "Results expected for given key");
+		WebDriverWait wait = new WebDriverWait(driver, 10);
 
-		treasuryResultsPage.goToResult(1);
+		// Find the button to do the search inside treasury objects
+		WebElement searchButton = wait
+				.until(ExpectedConditions.elementToBeClickable(By
+						.xpath("/HTML/BODY/DIV[@id=\"content\"]/DIV[2]/DIV[@id=\"listings-header\"]/FORM/SPAN/SPAN/INPUT")));
+
+		// Find the text input field to do the search
+		WebElement searchField = driver
+				.findElement(By
+						.xpath("/HTML/BODY/DIV[@id=\"content\"]/DIV[2]/DIV[@id=\"listings-header\"]/FORM/INPUT[@name=\"search_query\"]"));
+		// Search key
+		searchField.sendKeys("bag");
+
+		searchButton.click();
+
+		WebElement numResults = driver.findElement(By
+				.xpath("/HTML/BODY/DIV[@id=\"content\"]/DIV[1]/H1"));
+
+		assertNotEquals(numResults.getText().trim().substring(0, 1), "0",
+				"Results expected for given key");
+
+		WebElement gallery = wait
+				.until(ExpectedConditions.elementToBeClickable(By
+						.xpath("/HTML/BODY/DIV[@id=\"content\"]/DIV[2]/DIV[2]/UL/LI[1]/DIV[4]/A[1]/IMG")));
+		// Click should be done without errors
+		gallery.click();
 
 	}
 
@@ -55,7 +75,7 @@ public class EtsyTest {
 	public void addItemToCart() {
 		driver = new FirefoxDriver();
 
-		driver.get(EtsyValues.ETSY_CART_URL.getValue());
+		driver.get(CART_URL);
 		WebDriverWait wait = new WebDriverWait(driver, 10);
 
 		try {
@@ -105,7 +125,7 @@ public class EtsyTest {
 	@Test(groups = "suite2", dependsOnMethods = "addItemToCart")
 	public void removeItemFromCart() {
 
-		driver.get(EtsyValues.ETSY_CART_URL.getValue());
+		driver.get(CART_URL);
 
 		WebElement itemInCartMessage = driver
 				.findElement(By
