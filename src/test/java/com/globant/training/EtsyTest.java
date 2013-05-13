@@ -1,17 +1,12 @@
 package com.globant.training;
 
-import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotEquals;
-import static org.testng.Assert.fail;
+import static org.testng.Assert.assertTrue;
 
-import org.openqa.selenium.By;
-import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.firefox.FirefoxProfile;
-import org.openqa.selenium.support.ui.ExpectedConditions;
-import org.openqa.selenium.support.ui.WebDriverWait;
+import org.openqa.selenium.support.PageFactory;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -19,6 +14,7 @@ import org.testng.annotations.Test;
 import com.globant.training.common.EtsyValues;
 import com.globant.training.etsy.pages.CartPage;
 import com.globant.training.etsy.pages.HomePage;
+import com.globant.training.etsy.pages.ItemResultPage;
 import com.globant.training.etsy.pages.ResultsPage;
 import com.globant.training.etsy.pages.TreasuryResultsPage;
 
@@ -26,17 +22,21 @@ public class EtsyTest {
 
 	private WebDriver driver;
 
-	@BeforeMethod(groups = { "suite1", "suite3" })
-	public void init() {
+	private void commonInit() {
 		FirefoxProfile profile = new FirefoxProfile();
 		profile.setPreference("intl.accept_languages", "en");
-		driver = new FirefoxDriver();
+		driver = new FirefoxDriver(profile);
+	}
+
+	@BeforeMethod(groups = { "suite1", "suite3" })
+	public void init() {
+		commonInit();
 		driver.get(EtsyValues.ETSY_URL.getValue());
 	}
 
 	@AfterMethod(groups = { "suite1", "suite3" })
 	public void after() {
-		// driver.close();
+		driver.close();
 	}
 
 	/**
@@ -49,11 +49,8 @@ public class EtsyTest {
 
 		TreasuryResultsPage treasuryResultsPage = homePage.goToTreasury()
 				.treasurySearch("bag");
-		System.out.println("Assert expected results not 0");
 		assertNotEquals(treasuryResultsPage.getNumResults().getText().trim()
 				.substring(0, 1), "0", "Results expected for given key");
-		System.out.println("go to result");
-
 		treasuryResultsPage.goToResult(1);
 
 	}
@@ -63,30 +60,20 @@ public class EtsyTest {
 	 */
 	@Test(groups = "suite2")
 	public void addItemToCart() {
-		driver = new FirefoxDriver();
-
+		commonInit();
+		driver.get(EtsyValues.ETSY_CART_URL.getValue());
 		CartPage cartPage = new CartPage(driver);
 
-		if (!cartPage.isEmptyCart()) {
-			fail("Cart should be empty");
-		}
+		assertTrue(cartPage.isEmptyCart(), "Cart should be empty");
 
-		ResultsPage resultsPage = cartPage.commonSearch("hat");
+		ResultsPage resultsPage = cartPage
+				.commonSearch("custom hats full color top snapback");
+		PageFactory.initElements(driver, resultsPage);
+		ItemResultPage itemResult = resultsPage.goToResult(0);
+		itemResult = itemResult.selectDropDown(1);
+		cartPage = itemResult.addItemToCart();
 
-		resultsPage.getResultItems().get(0).click();
-
-		WebElement addToCartButton = wait
-				.until(ExpectedConditions.elementToBeClickable(By
-						.xpath("/HTML/BODY/DIV[@id=\"content\"]/DIV/DIV/DIV/DIV[2]/DIV[1]/DIV[2]/DIV[3]/DIV[1]/FORM/SPAN/SPAN/INPUT")));
-
-		addToCartButton.click();
-
-		WebElement itemInCartMessage = driver
-				.findElement(By
-						.xpath("/HTML/BODY/DIV[@id=\"content\"]/DIV[@id=\"primary\"]/DIV[@id=\"checkout\"]/DIV[@id=\"checkout-header\"]/H1"));
-
-		assertEquals(itemInCartMessage.getText().trim().substring(0, 1), "1",
-				"1 item expected in cart");
+		assertTrue(!cartPage.isEmptyCart(), "Cart should contain an item");
 	}
 
 	/**
@@ -96,112 +83,29 @@ public class EtsyTest {
 	public void removeItemFromCart() {
 
 		driver.get(EtsyValues.ETSY_CART_URL.getValue());
-
-		WebElement itemInCartMessage = driver
-				.findElement(By
-						.xpath("/HTML/BODY/DIV[@id=\"content\"]/DIV[@id=\"primary\"]/DIV[@id=\"checkout\"]/DIV[@id=\"checkout-header\"]/H1"));
-
-		assertEquals(itemInCartMessage.getText().trim().substring(0, 1), "1",
-				"1 item expected in cart");
-
-		WebElement clearButton = driver
-				.findElement(By
-						.xpath("/HTML/BODY/DIV[@id=\"content\"]/DIV[@id=\"primary\"]/DIV[@id=\"checkout\"]/FORM[1]/H2/SPAN[2]/A"));
-
-		clearButton.click();
-
-		WebDriverWait wait = new WebDriverWait(driver, 10);
-
-		try {
-			wait.until(ExpectedConditions.presenceOfElementLocated(By
-					.xpath("/HTML/BODY/DIV[@id=\"content\"]/DIV[@id=\"primary\"]/DIV[@id=\"checkout\"]/DIV[@id=\"newempty\"]/DIV")));
-		} catch (NoSuchElementException e) {
-			fail("Cart should be empty");
-		}
+		CartPage cartPage = new CartPage(driver);
+		assertTrue(!cartPage.isEmptyCart(), "Cart should contain an item");
+		cartPage = cartPage.clearCart();
+		assertTrue(cartPage.isEmptyCart(), "Cart should be empty");
+		driver.close();
 	}
 
 	@Test(groups = "suite3")
 	public void advancedHatSearch() {
 
-		WebElement vintageLink = driver
-				.findElement(By
-						.xpath("/HTML/BODY/DIV[@id=\"content\"]/DIV[@id=\"secondary\"]/DIV[1]/UL[@id=\"category-list\"]/LI[7]/A"));
-		vintageLink.click();
+		ResultsPage resultsPage = new HomePage(driver).commonSearch("hat");
+		resultsPage.goToLinkName(EtsyValues.VINTAGE.getValue());
 
-		WebDriverWait wait = new WebDriverWait(driver, 10);
-
-		// Find the button to do the search inside treasury objects
-		WebElement searchButton = wait
-				.until(ExpectedConditions.elementToBeClickable(By
-						.xpath("/HTML/BODY/DIV[@id=\"header\"]/DIV[@id=\"navigation-group\"]/FORM[@id=\"search-bar\"]/DIV/BUTTON[@id=\"search_submit\"]")));
-
-		// Find the text input field to do the search
-		WebElement searchField = driver
-				.findElement(By
-						.xpath("/HTML/BODY/DIV[@id=\"header\"]/DIV[@id=\"navigation-group\"]/FORM[@id=\"search-bar\"]/DIV/INPUT[@id=\"search-query\"]"));
-		// Search key
-		searchField.sendKeys("hat");
-
-		searchButton.click();
-
-		WebElement allItemsLink = wait
-				.until(ExpectedConditions.elementToBeClickable(By
-						.xpath("/HTML/BODY/DIV[@id=\"content\"]/DIV/DIV/DIV/DIV[@id=\"secondary\"]/DIV[@id=\"search-filters\"]/UL[1]/LI[1]/A")));
-
-		allItemsLink.click();
-
-		vintageLink = wait
-				.until(ExpectedConditions.elementToBeClickable(By
-						.xpath("/HTML/BODY/DIV[@id=\"content\"]/DIV/DIV/DIV/DIV[@id=\"secondary\"]/DIV[@id=\"search-filters\"]/UL[1]/LI[3]/A")));
-
-		vintageLink.click();
-		try {
-			wait.until(ExpectedConditions.elementToBeClickable(By
-					.xpath("/HTML/BODY/DIV[@id=\"content\"]/DIV/DIV/DIV/DIV[@id=\"primary\"]/UL/LI[1]/A/IMG")));
-		} catch (NoSuchElementException e) {
-			fail("There should be elements for the vintage search");
-		}
+		assertTrue(!resultsPage.isEmptyResults(),
+				"There should be elements for the vintage search");
 	}
 
 	@Test(groups = "suite3")
 	public void advancedRingSearch() {
-		WebElement jewelryLink = driver
-				.findElement(By
-						.xpath("/HTML/BODY/DIV[@id=\"content\"]/DIV[@id=\"secondary\"]/DIV[1]/UL[@id=\"category-list\"]/LI[3]/A"));
-		jewelryLink.click();
+		ResultsPage resultsPage = new HomePage(driver).commonSearch("ring");
+		resultsPage.goToLinkName(EtsyValues.JEWELRY.getValue());
 
-		WebDriverWait wait = new WebDriverWait(driver, 10);
-
-		// Find the button to do the search inside treasury objects
-		WebElement searchButton = wait
-				.until(ExpectedConditions.elementToBeClickable(By
-						.xpath("/HTML/BODY/DIV[@id=\"header\"]/DIV[@id=\"navigation-group\"]/FORM[@id=\"search-bar\"]/DIV/BUTTON[@id=\"search_submit\"]")));
-
-		// Find the text input field to do the search
-		WebElement searchField = driver
-				.findElement(By
-						.xpath("/HTML/BODY/DIV[@id=\"header\"]/DIV[@id=\"navigation-group\"]/FORM[@id=\"search-bar\"]/DIV/INPUT[@id=\"search-query\"]"));
-		// Search key
-		searchField.sendKeys("ring");
-
-		searchButton.click();
-
-		WebElement allItemsLink = wait
-				.until(ExpectedConditions.elementToBeClickable(By
-						.xpath("/HTML/BODY/DIV[@id=\"content\"]/DIV/DIV/DIV/DIV[@id=\"secondary\"]/DIV[@id=\"search-filters\"]/UL[1]/LI[1]/A")));
-
-		allItemsLink.click();
-
-		jewelryLink = wait
-				.until(ExpectedConditions.elementToBeClickable(By
-						.xpath("/HTML/BODY/DIV[@id=\"content\"]/DIV/DIV/DIV/DIV[@id=\"secondary\"]/DIV[@id=\"search-filters\"]/UL[2]/LI[2]/A")));
-		jewelryLink.click();
-
-		try {
-			wait.until(ExpectedConditions.elementToBeClickable(By
-					.xpath("/HTML/BODY/DIV[@id=\"content\"]/DIV/DIV/DIV/DIV[@id=\"primary\"]/UL/LI[1]/A/IMG")));
-		} catch (NoSuchElementException e) {
-			fail("There should be elements for the jewlery search");
-		}
+		assertTrue(!resultsPage.isEmptyResults(),
+				"There should be elements for the jewelry search");
 	}
 }

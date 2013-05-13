@@ -22,6 +22,12 @@ public abstract class CommonPage {
 		this.driver = driver;
 		this.title = title;
 		wait = new WebDriverWait(driver, 10);
+		try {
+			Thread.sleep(2000);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		checkCorrectPage();
 	}
 

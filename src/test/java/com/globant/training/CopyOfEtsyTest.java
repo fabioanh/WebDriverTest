@@ -22,7 +22,7 @@ public class CopyOfEtsyTest {
 
 	private WebDriver driver;
 
-	@BeforeMethod(groups = { "suite1", "suite3" })
+	@BeforeMethod(groups = { "suite1-1", "suite3-3" })
 	public void init() {
 		driver = new FirefoxDriver();
 		driver.get(ETSY_URL);
@@ -71,7 +71,7 @@ public class CopyOfEtsyTest {
 	/**
 	 * Test the addition of items to the shopping cart
 	 */
-	@Test(groups = "suite2")
+	@Test(groups = "suite2-2")
 	public void addItemToCart() {
 		driver = new FirefoxDriver();
 
@@ -122,7 +122,7 @@ public class CopyOfEtsyTest {
 	/**
 	 * Test removing an item from the shopping cart
 	 */
-	@Test(groups = "suite2", dependsOnMethods = "addItemToCart")
+	@Test(groups = "suite2-2", dependsOnMethods = "addItemToCart")
 	public void removeItemFromCart() {
 
 		driver.get(CART_URL);
@@ -150,7 +150,7 @@ public class CopyOfEtsyTest {
 		}
 	}
 
-	@Test(groups = "suite3")
+	@Test(groups = "suite3-3")
 	public void advancedHatSearch() {
 
 		WebElement vintageLink = driver
@@ -193,7 +193,7 @@ public class CopyOfEtsyTest {
 		}
 	}
 
-	@Test(groups = "suite3")
+	@Test(groups = "suite3-3")
 	public void advancedRingSearch() {
 		WebElement jewelryLink = driver
 				.findElement(By
