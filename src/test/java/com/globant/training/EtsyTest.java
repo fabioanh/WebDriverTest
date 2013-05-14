@@ -3,12 +3,19 @@ package com.globant.training;
 import static org.testng.Assert.assertNotEquals;
 import static org.testng.Assert.assertTrue;
 
+import java.io.FileInputStream;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Properties;
+
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.firefox.FirefoxProfile;
 import org.openqa.selenium.support.PageFactory;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import com.globant.training.common.EtsyValues;
@@ -19,6 +26,17 @@ import com.globant.training.etsy.pages.ResultsPage;
 import com.globant.training.etsy.pages.TreasuryResultsPage;
 
 public class EtsyTest {
+
+	@DataProvider(name = "dataFromFile")
+	public static Iterator<Object[]> getDataFromFile() throws Exception {
+		Properties props = new Properties();
+		props.load(new FileInputStream("searchKeys.properties"));
+		List<Object[]> data = new ArrayList<Object[]>();
+		for (Object obj : props.values()) {
+			data.add(new Object[] { obj });
+		}
+		return data.iterator();
+	}
 
 	private WebDriver driver;
 
@@ -42,13 +60,13 @@ public class EtsyTest {
 	/**
 	 * Test intended to search items around in the site
 	 */
-	@Test(groups = "suite1")
-	public void browseItems() {
+	@Test(groups = "suite1", dataProvider="dataFromFile")
+	public void browseItems(String key) {
 
 		HomePage homePage = new HomePage(driver);
 
 		TreasuryResultsPage treasuryResultsPage = homePage.goToTreasury()
-				.treasurySearch("bag");
+				.treasurySearch(key);
 		assertNotEquals(treasuryResultsPage.getNumResults().getText().trim()
 				.substring(0, 1), "0", "Results expected for given key");
 		treasuryResultsPage.goToResult(1);
